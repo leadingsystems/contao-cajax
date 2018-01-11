@@ -1,0 +1,31 @@
+{
+  "name": "leadingsystems/contao-cajax",
+  "description": "Leading Systems Cajax as a Contao 4 bundle",
+  "keywords": [
+    "contao",
+    "leading systems",
+    "bundle"
+  ],
+  "type": "contao-bundle",
+  "require": {
+    "php": ">=7.0.0",
+    "contao/core-bundle": "~4.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "LeadingSystems\\CajaxBundle\\": "src/"
+    },
+    "classmap": [
+      "src/Resources/contao/"
+    ],
+    "exclude-from-classmap": [
+      "src/Resources/contao/config/",
+      "src/Resources/contao/dca/",
+      "src/Resources/contao/languages/",
+      "src/Resources/contao/templates/"
+    ]
+  },
+  "extra": {
+    "contao-manager-plugin": "LeadingSystems\\CajaxBundle\\ContaoManager\\Plugin"
+  }
+}
