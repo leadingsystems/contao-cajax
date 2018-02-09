@@ -342,6 +342,27 @@ class ls_cajax_mainController {
 		 */
 		$str_content = preg_replace('/>(\s+)</', '>pws::$1::pws<', $str_content);
 
+
+
+		/*
+		 * Replace ESI elements with random unique strings and store the mapping of the ESI elements to their
+		 * respective replacements in order to be able to re-insert the ESI elements later.
+		 * This is necessary because the ESI elements can make the html content invalid and thus prevent
+		 * DOMDocument from being able to parse it correctly.
+		 */
+		$arr_esiElements = [];
+		$str_content = preg_replace_callback(
+			'/(<esi:include[^>]*>)/',
+
+			function($matches) use (&$arr_esiElements) {
+				$placeholder = '---esi-placeholder---' . uniqid('', true);
+				$arr_esiElements[$placeholder] = $matches[0];
+				return $placeholder;
+			},
+
+			$str_content
+		);
+
 		@$obj_dom->loadHTML('<?xml encoding="utf-8" ?>'.$str_content);
 		
 		/*
@@ -379,6 +400,9 @@ class ls_cajax_mainController {
 				}
 			}
 		}
+
+		// Re-insert ESI elements
+		$str_content = str_replace(array_keys($arr_esiElements), array_values($arr_esiElements), $str_content);
 
 		$str_content = preg_replace('/>pws::(\s+)::pws</', '>$1<', $str_content);
 
