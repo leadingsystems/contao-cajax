@@ -2,6 +2,8 @@
 
 namespace LeadingSystems\Cajax;
 
+use LeadingSystems\Helpers\ls_helpers_controller;
+
 class ls_cajax_mainController {
 	protected static $objInstance;
 	
@@ -52,6 +54,10 @@ class ls_cajax_mainController {
 					$_SESSION['ls_cajax']['requestData'] = $arr_tmp_jsonDecodedRequestData;
 				}
 			}
+		}
+
+		if (\Input::get('cajaxRequestData')) {
+			\Environment::set('request', ls_helpers_controller::getUrl(false, array('cajaxRequestData')));
 		}
 
 		if (
