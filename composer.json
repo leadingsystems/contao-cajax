@@ -9,7 +9,8 @@
   "type": "contao-bundle",
   "require": {
     "php": ">=7.0.0",
-    "contao/core-bundle": "~4.4"
+    "contao/core-bundle": "~4.4",
+    "leadingsystems/contao-helpers": "*"
   },
   "autoload": {
     "psr-4": {
