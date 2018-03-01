@@ -335,8 +335,7 @@ class ls_cajax_mainController {
 		}
 		
 		/* 
-		 * We create a dom document and load the original output html. By prepending
-		 * an xml declaration, we make sure that we have the correct encoding.
+		 * We create a dom document and load the original output html.
 		 */
 		$obj_dom = new \DOMDocument();
 
@@ -369,7 +368,19 @@ class ls_cajax_mainController {
 			$str_content
 		);
 
-		@$obj_dom->loadHTML('<?xml encoding="utf-8" ?>'.$str_content);
+		/*
+		 * Loading the original output html.
+		 * By using "mb_convert_encoding", we make sure that we have the correct encoding.
+		 * If the function "mb_convert_encoding" does not exist, we prepend an xml declaration
+		 * which should also work but doesn't under certain circumstances which is why it's
+		 * not our first choice.
+		 *
+		 */
+		if (function_exists('mb_convert_encoding')) {
+			@$obj_dom->loadHTML(mb_convert_encoding($str_content, 'HTML-ENTITIES', 'UTF-8'));
+		} else {
+			@$obj_dom->loadHTML('<?xml encoding="utf-8" ?>'.$str_content);
+		}
 		
 		/*
 		 * We grab the nodes that match the requested element ids or classes and,
