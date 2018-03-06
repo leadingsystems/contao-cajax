@@ -1,4 +1,4 @@
-Leading Systems Contao Cajax bundle changelog
+Leading Systems Cajax bundle for Contao 4 changelog
 ===========================================
 
 ### 2.0.0 (2018-01-11)
