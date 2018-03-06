@@ -11,7 +11,7 @@
   "require": {
     "php": ">=7.0.0",
     "contao/core-bundle": "~4.4",
-    "leadingsystems/contao-helpers": "*"
+    "leadingsystems/contao-helpers": ">=2.0.0"
   },
   "autoload": {
     "psr-4": {
