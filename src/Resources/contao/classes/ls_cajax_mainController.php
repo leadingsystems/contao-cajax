@@ -92,6 +92,8 @@ class ls_cajax_mainController {
 			
 			$this->handleRenderingFilterInput();
 		}
+		
+		\Input::setGet('cajaxRequestData', null);
 	}
 	
 	/*
