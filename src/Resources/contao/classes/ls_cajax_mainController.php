@@ -70,7 +70,7 @@ class ls_cajax_mainController {
 			$this->removeCacheBustingParameter();
 		}
 
-		if ($_SESSION['ls_cajax']['requestData'] !== null) {
+		if (($_SESSION['ls_cajax']['requestData'] ?? null) !== null) {
 			/*
 			 * ->
 			 * Contao deals with ajax requests in a way that does not play nicely
@@ -303,6 +303,10 @@ class ls_cajax_mainController {
 	 * the requested id will be sent to the client
 	 */
 	public function modifyOutput($str_content, $str_template) {
+	    if (!is_array($_SESSION['ls_cajax'] ?? null)) {
+	        return $str_content;
+        }
+
 		/*
 		 * Because the first thing we want to do in this function is to unset
 		 * the cajax specific session data but we need the data later in this
