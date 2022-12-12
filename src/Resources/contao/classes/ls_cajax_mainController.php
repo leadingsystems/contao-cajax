@@ -7,7 +7,7 @@ use LeadingSystems\Helpers\ls_helpers_controller;
 class ls_cajax_mainController {
 	protected static $objInstance;
 	
-	final private function __clone() {}
+	private function __clone() {}
 	
 	public static function getInstance() {
 		if (!is_object(self::$objInstance))	{
@@ -243,8 +243,8 @@ class ls_cajax_mainController {
 		 * Don't do anything if no relevant cajax rendering filter is set
 		 */
 		if (
-				!$_SESSION['ls_cajax']['bln_useRenderingFilter']['any']
-			||	!$_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType]
+				!($_SESSION['ls_cajax']['bln_useRenderingFilter']['any'] ?? null)
+			||	!($_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType] ?? null)
 		) {
 			return $bln_isVisible;
 		}
@@ -329,7 +329,7 @@ class ls_cajax_mainController {
 			return $str_content;
 		}
 		
-		if (!$tmp_ls_cajax['requestData']['requestedElementID'] && !$tmp_ls_cajax['requestData']['requestedElementClass']) {
+		if (!($tmp_ls_cajax['requestData']['requestedElementID'] ?? null) && !($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null)) {
 			return $str_content;
 		}
 
@@ -395,7 +395,7 @@ class ls_cajax_mainController {
 		 */
 		$str_content = '';
 		
-		if ($tmp_ls_cajax['requestData']['requestedElementID']) {
+		if ($tmp_ls_cajax['requestData']['requestedElementID'] ?? null) {
 			$arr_requestedElementIds = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementID']));
 			foreach ($arr_requestedElementIds as $str_requestedElementId) {
 				$obj_relevantNode = $obj_dom->getElementById($str_requestedElementId);
@@ -406,7 +406,7 @@ class ls_cajax_mainController {
 			}
 		}
 		
-		if ($tmp_ls_cajax['requestData']['requestedElementClass']) {
+		if ($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null) {
 			$arr_requestedElementClasses = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementClass']));
 			$obj_xpath = new \DOMXPath($obj_dom);
 			foreach ($arr_requestedElementClasses as $str_requestedElementClass) {
