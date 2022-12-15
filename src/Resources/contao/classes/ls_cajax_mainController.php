@@ -7,7 +7,7 @@ use LeadingSystems\Helpers\ls_helpers_controller;
 class ls_cajax_mainController {
 	protected static $objInstance;
 	
-	final private function __clone() {}
+	private function __clone() {}
 	
 	public static function getInstance() {
 		if (!is_object(self::$objInstance))	{
@@ -70,7 +70,7 @@ class ls_cajax_mainController {
 			$this->removeCacheBustingParameter();
 		}
 
-		if ($_SESSION['ls_cajax']['requestData'] !== null) {
+		if (($_SESSION['ls_cajax']['requestData'] ?? null) !== null) {
 			/*
 			 * ->
 			 * Contao deals with ajax requests in a way that does not play nicely
@@ -243,8 +243,8 @@ class ls_cajax_mainController {
 		 * Don't do anything if no relevant cajax rendering filter is set
 		 */
 		if (
-				!$_SESSION['ls_cajax']['bln_useRenderingFilter']['any']
-			||	!$_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType]
+				!($_SESSION['ls_cajax']['bln_useRenderingFilter']['any'] ?? null)
+			||	!($_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType] ?? null)
 		) {
 			return $bln_isVisible;
 		}
@@ -303,6 +303,10 @@ class ls_cajax_mainController {
 	 * the requested id will be sent to the client
 	 */
 	public function modifyOutput($str_content, $str_template) {
+	    if (!is_array($_SESSION['ls_cajax'] ?? null)) {
+	        return $str_content;
+        }
+
 		/*
 		 * Because the first thing we want to do in this function is to unset
 		 * the cajax specific session data but we need the data later in this
@@ -325,7 +329,7 @@ class ls_cajax_mainController {
 			return $str_content;
 		}
 		
-		if (!$tmp_ls_cajax['requestData']['requestedElementID'] && !$tmp_ls_cajax['requestData']['requestedElementClass']) {
+		if (!($tmp_ls_cajax['requestData']['requestedElementID'] ?? null) && !($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null)) {
 			return $str_content;
 		}
 
@@ -391,7 +395,7 @@ class ls_cajax_mainController {
 		 */
 		$str_content = '';
 		
-		if ($tmp_ls_cajax['requestData']['requestedElementID']) {
+		if ($tmp_ls_cajax['requestData']['requestedElementID'] ?? null) {
 			$arr_requestedElementIds = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementID']));
 			foreach ($arr_requestedElementIds as $str_requestedElementId) {
 				$obj_relevantNode = $obj_dom->getElementById($str_requestedElementId);
@@ -402,7 +406,7 @@ class ls_cajax_mainController {
 			}
 		}
 		
-		if ($tmp_ls_cajax['requestData']['requestedElementClass']) {
+		if ($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null) {
 			$arr_requestedElementClasses = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementClass']));
 			$obj_xpath = new \DOMXPath($obj_dom);
 			foreach ($arr_requestedElementClasses as $str_requestedElementClass) {
