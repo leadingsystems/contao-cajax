@@ -428,6 +428,13 @@ class ls_cajax_mainController {
 		$str_content = str_replace(array_keys($arr_esiElements), array_values($arr_esiElements), $str_content);
 
 		$str_content = preg_replace('/>pws::(\s+)::pws</', '>$1<', $str_content);
+		
+		/*
+		 * The html code may have been modified by DOMXPath to remove html tags, e.g. if they are redundant
+		 * (like two </p></p> in a row). In this case it can happen that the previous replacement didn't catch
+		 * all pws fragments. Therefore we now remove the leftovers.
+		 */
+		$str_content = str_replace(array("::pws", "pws::"), "", $str_content);
 
 		return $str_content;
 	}
