@@ -2,6 +2,7 @@
 
 namespace LeadingSystems\Cajax;
 
+use Contao\System;
 use LeadingSystems\Helpers\ls_helpers_controller;
 
 class ls_cajax_mainController {
@@ -333,7 +334,7 @@ class ls_cajax_mainController {
 			return $str_content;
 		}
 
-		if (TL_MODE === 'BE') {
+		if (System::getContainer()->get('merconis.routing.scope_matcher')->isBackend()) {
 			$obj_beUser = \BackendUser::getInstance();
 			if ($obj_beUser->currentLogin === null) {
 				return 'NOT ALLOWED';
