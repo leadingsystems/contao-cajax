@@ -334,7 +334,7 @@ class ls_cajax_mainController {
 			return $str_content;
 		}
 
-		if (System::getContainer()->get('merconis.routing.scope_matcher')->isBackend()) {
+		if (System::getContainer()->get('merconis.routing.scope')->isBackend()) {
 			$obj_beUser = \BackendUser::getInstance();
 			if ($obj_beUser->currentLogin === null) {
 				return 'NOT ALLOWED';
