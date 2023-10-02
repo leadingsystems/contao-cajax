@@ -9,8 +9,8 @@
   "type": "contao-bundle",
   "license": "proprietary",
   "require": {
-    "php": ">=7.0.0",
-    "contao/core-bundle": "~4.9",
+    "php": "^7.4 || ^8.0",
+    "contao/core-bundle": "^4.13",
     "leadingsystems/contao-helpers": ">=2.0.0"
   },
   "autoload": {
@@ -30,7 +30,7 @@
   "extra": {
     "contao-manager-plugin": "LeadingSystems\\CajaxBundle\\ContaoManager\\Plugin",
     "branch-alias": {
-      "dev-master": "2.0.x-dev"
+      "dev-master": "2.1.x-dev"
     }
   }
 }
