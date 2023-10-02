@@ -9,8 +9,8 @@
   "type": "contao-bundle",
   "license": "proprietary",
   "require": {
-    "php": ">=7.0.0",
-    "contao/core-bundle": "~4.9",
+    "php": "^7.4 || ^8.0",
+    "contao/core-bundle": "^4.13",
     "leadingsystems/contao-helpers": ">=2.0.0"
   },
   "autoload": {
