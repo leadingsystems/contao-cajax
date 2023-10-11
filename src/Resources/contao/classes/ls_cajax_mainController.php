@@ -4,7 +4,6 @@ namespace LeadingSystems\Cajax;
 
 use Contao\System;
 use LeadingSystems\Helpers\ls_helpers_controller;
-use Symfony\Component\HttpFoundation\Request;
 
 class ls_cajax_mainController {
 	protected static $objInstance;
@@ -335,11 +334,10 @@ class ls_cajax_mainController {
 			return $str_content;
 		}
 
-		if (
-            System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest(
-                System::getContainer()->get('request_stack')->getCurrentRequest() ?? Request::create('')
-            )
-        ) {
+        $request = System::getContainer()->get('request_stack')->getCurrentRequest();
+
+		if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request))
+        {
 			$obj_beUser = \BackendUser::getInstance();
 			if ($obj_beUser->currentLogin === null) {
 				return 'NOT ALLOWED';
