@@ -6,5 +6,10 @@ services:
     public: false
 
   cajax.session:
-    class: LeadingSystems\Cajax\Services\Session
+    class: LeadingSystems\CajaxBundle\Services\Session
     public: true
+
+  cajax.eventlistener.kernellistener:
+    class: LeadingSystems\CajaxBundle\EventListener\KernelListener
+    tags:
+      - { name: kernel.event_listener, event: kernel.controller_arguments }

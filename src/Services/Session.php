@@ -1,6 +1,6 @@
 <?php
 
-namespace LeadingSystems\Cajax\Services;
+namespace LeadingSystems\CajaxBundle\Services;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
