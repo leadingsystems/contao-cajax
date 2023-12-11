@@ -1,7 +1,7 @@
 Leading Systems Cajax bundle for Contao 4 changelog
 ===========================================
 
-### 2.1.1 (nry: 2023-11-10)
+### 2.1.1 (2023-12-11)
  * Fix some issues for Contao 5
 
 ### 2.1.0 (2023-09-28)
