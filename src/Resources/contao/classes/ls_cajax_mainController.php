@@ -41,7 +41,7 @@ class ls_cajax_mainController {
          * finished due to an error.
          */
 
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         if (!\Environment::get('isAjaxRequest') && isset($session_lsCajax)) {
@@ -132,7 +132,7 @@ class ls_cajax_mainController {
         }
      */
     protected function handleRenderingFilterInput() {
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         $session_lsCajax['bln_useRenderingFilter'] = array(
@@ -168,7 +168,7 @@ class ls_cajax_mainController {
     }
 
     protected function handleRenderingFilterElementInputByType($str_elementType = 'articles') {
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         /*
@@ -260,7 +260,7 @@ class ls_cajax_mainController {
         /*
          * Don't do anything if no relevant cajax rendering filter is set
          */
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         if (
@@ -280,7 +280,7 @@ class ls_cajax_mainController {
             return $bln_isVisible;
         }
 
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         /*
@@ -327,7 +327,7 @@ class ls_cajax_mainController {
      * the requested id will be sent to the client
      */
     public function modifyOutput($str_content, $str_template) {
-        $session = \System::getContainer()->get('cajax.session')->getSession();
+        $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
         if (!is_array($session_lsCajax ?? null)) {
