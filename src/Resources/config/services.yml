@@ -11,5 +11,7 @@ services:
 
   cajax.eventlistener.kernellistener:
     class: LeadingSystems\CajaxBundle\EventListener\KernelListener
+    arguments:
+      - '@contao.framework'
     tags:
       - { name: kernel.event_listener, event: kernel.controller_arguments }
