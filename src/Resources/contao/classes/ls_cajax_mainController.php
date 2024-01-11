@@ -2,9 +2,13 @@
 
 namespace LeadingSystems\Cajax;
 
+use Contao\BackendUser;
+use Contao\ContentModel;
+use Contao\Environment;
+use Contao\Input;
+use Contao\ModuleModel;
 use Contao\System;
 use LeadingSystems\Helpers\ls_helpers_controller;
-use Symfony\Component\HttpFoundation\Request;
 
 class ls_cajax_mainController {
     protected static $objInstance;
@@ -44,12 +48,12 @@ class ls_cajax_mainController {
         $session = System::getContainer()->get('cajax.session')->getSession();
         $session_lsCajax =  $session->get('lsCajax', []);
 
-        if (!\Environment::get('isAjaxRequest') && isset($session_lsCajax)) {
+        if (!Environment::get('isAjaxRequest') && isset($session_lsCajax)) {
             $session->set('lsCajax', false);
         }
 
-        if (\Input::get('cajaxRequestData') || \Input::post('cajaxRequestData')) {
-            $session_lsCajax['requestData'] = (\Input::get('cajaxRequestData') ?: \Input::post('cajaxRequestData')) ?: null;
+        if (Input::get('cajaxRequestData') || Input::post('cajaxRequestData')) {
+            $session_lsCajax['requestData'] = (Input::get('cajaxRequestData') ?: Input::post('cajaxRequestData')) ?: null;
 
             if (!is_array($session_lsCajax['requestData'])) {
                 /*
@@ -62,15 +66,15 @@ class ls_cajax_mainController {
             }
         }
 
-        if (\Input::get('cajaxRequestData')) {
-            \Environment::set('request', ls_helpers_controller::getUrl(false, array('cajaxRequestData')));
+        if (Input::get('cajaxRequestData')) {
+            Environment::set('request', ls_helpers_controller::getUrl(false, array('cajaxRequestData')));
         }
 
         if (
-                \Environment::get('isAjaxRequest')
+                Environment::get('isAjaxRequest')
             &&	(
-                    \Input::get('cajaxRequestData')
-                ||	\Input::post('cajaxRequestData')
+                    Input::get('cajaxRequestData')
+                ||	Input::post('cajaxRequestData')
                 )
         ) {
             $this->removeCacheBustingParameter();
@@ -91,7 +95,7 @@ class ls_cajax_mainController {
              * We solve this problem by not identifying an ls_cajax request
              * as an ajax request
              */
-            \Environment::set('isAjaxRequest', false);
+            Environment::set('isAjaxRequest', false);
             /*
              * <-
              */
@@ -99,7 +103,7 @@ class ls_cajax_mainController {
             $this->handleRenderingFilterInput();
         }
         $session->set('lsCajax', $session_lsCajax);
-        \Input::setGet('cajaxRequestData', null);
+        Input::setGet('cajaxRequestData', null);
     }
 
     /*
@@ -249,9 +253,9 @@ class ls_cajax_mainController {
             return $bln_isVisible;
         }
 
-        if ($obj_element instanceof \ContentModel) {
+        if ($obj_element instanceof ContentModel) {
             $str_elementType = 'contentElements';
-        } else if ($obj_element instanceof \ModuleModel) {
+        } else if ($obj_element instanceof ModuleModel) {
             $str_elementType = 'modules';
         } else {
             $str_elementType = 'articles';
@@ -366,7 +370,7 @@ class ls_cajax_mainController {
 
         if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request))
         {
-            $obj_beUser = \BackendUser::getInstance();
+            $obj_beUser = BackendUser::getInstance();
             if ($obj_beUser->currentLogin === null) {
                 return 'NOT ALLOWED';
             }
@@ -493,7 +497,7 @@ class ls_cajax_mainController {
          *
          * We expect the random parameter to be a "valueless" parameter and identify it by this characteristic.
          */
-        $arr_requestParts = explode('?', \Environment::get('request'));
+        $arr_requestParts = explode('?', Environment::get('request'));
         $str_requestBase = $arr_requestParts[0];
         $str_queryString = $arr_requestParts[1];
 
@@ -506,6 +510,6 @@ class ls_cajax_mainController {
             }
         }
 
-        \Environment::set('request', $str_requestBase.(count($arr_queryStringPartsToKeep) ? '?'.implode('&', $arr_queryStringPartsToKeep) : ''));
+        Environment::set('request', $str_requestBase.(count($arr_queryStringPartsToKeep) ? '?'.implode('&', $arr_queryStringPartsToKeep) : ''));
     }
 }
