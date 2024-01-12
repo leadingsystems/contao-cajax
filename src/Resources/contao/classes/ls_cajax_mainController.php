@@ -8,6 +8,10 @@ use Contao\Environment;
 use Contao\Input;
 use Contao\ModuleModel;
 use Contao\System;
+use DOMDocument;
+use DOMNode;
+use DOMNodeList;
+use DOMXPath;
 use LeadingSystems\Helpers\ls_helpers_controller;
 
 class ls_cajax_mainController {
@@ -379,7 +383,7 @@ class ls_cajax_mainController {
         /*
          * We create a dom document and load the original output html.
          */
-        $obj_dom = new \DOMDocument();
+        $obj_dom = new DOMDocument();
 
         /*
          * Since DOMDocument will remove whitespaces between tags, we need to preserve them
@@ -444,12 +448,12 @@ class ls_cajax_mainController {
 
         if ($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null) {
             $arr_requestedElementClasses = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementClass']));
-            $obj_xpath = new \DOMXPath($obj_dom);
+            $obj_xpath = new DOMXPath($obj_dom);
             foreach ($arr_requestedElementClasses as $str_requestedElementClass) {
                 $obj_relevantNodeList = $obj_xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' ".$str_requestedElementClass." ')]");
-                if ($obj_relevantNodeList instanceof \DOMNode) {
+                if ($obj_relevantNodeList instanceof DOMNode) {
                     $str_content .= $obj_relevantNodeList->ownerDocument->saveHTML($obj_relevantNodeList);
-                } else if ($obj_relevantNodeList instanceof \DOMNodeList) {
+                } else if ($obj_relevantNodeList instanceof DOMNodeList) {
                     foreach ($obj_relevantNodeList as $obj_relevantNode) {
                         if ($obj_relevantNode !== null) {
                             # $str_content .= $this->getChildNodesAsHTMLString($obj_relevantNode);
