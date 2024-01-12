@@ -1,6 +1,10 @@
 Leading Systems Cajax bundle for Contao 4 changelog
 ===========================================
 
+### 2.1.2 (nry: 2024-01-12)
+ * Rewrite Session to Symfony Session Handling
+ * Fix some issues for Contao 5
+
 ### 2.1.1 (2023-12-11)
  * Fix some issues for Contao 5
 
