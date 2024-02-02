@@ -13,7 +13,6 @@ use DOMNode;
 use DOMNodeList;
 use DOMXPath;
 use LeadingSystems\Helpers\ls_helpers_controller;
-use Symfony\Component\HttpFoundation\Request;
 
 class ls_cajax_mainController {
     protected static $objInstance;
