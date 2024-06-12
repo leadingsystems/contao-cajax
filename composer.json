@@ -10,7 +10,7 @@
   "license": "proprietary",
   "require": {
     "php": "^7.4 || ^8.0",
-    "contao/core-bundle": "^4.13 || ^5.0",
+    "contao/core-bundle": "^4.13",
     "leadingsystems/contao-helpers": ">=2.0.0"
   },
   "autoload": {
