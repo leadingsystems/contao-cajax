@@ -2,7 +2,17 @@
 
 namespace LeadingSystems\Cajax;
 
+use Contao\BackendUser;
+use Contao\ContentModel;
+use Contao\Environment;
+use Contao\Input;
+use Contao\ModuleModel;
 use Contao\System;
+use DOMDocument;
+use DOMNode;
+use DOMNodeList;
+use DOMXPath;
+use LeadingSystems\CajaxBundle\ContaoManager\Session;
 use LeadingSystems\Helpers\ls_helpers_controller;
 
 class ls_cajax_mainController {
@@ -24,6 +34,17 @@ class ls_cajax_mainController {
      * or redirect that might occur.
      */
     public function receiveRequestData() {
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        /*
+         * If cache is recreated in console or contao-manager no requestStack exists, so no Session object
+         * got created, so we need to end this early
+         */
+        if(!$session){
+            return;
+        }
+        $session_cajax =  $session->get('cajax');
+
         /*
          * If cajaxRequestData is sent as a post parameter with a submitted form, contao saves the parameter in the
          * session (FORM_DATA) which later can lead to a falsely detected cajax request. Therefore, we remove the
@@ -39,39 +60,42 @@ class ls_cajax_mainController {
          * the session, which can happen if a previous cajax request could not be
          * finished due to an error.
          */
-        if (!\Environment::get('isAjaxRequest') && isset($_SESSION['ls_cajax'])) {
-            unset($_SESSION['ls_cajax']);
+        if (!Environment::get('isAjaxRequest') && isset($session_cajax)) {
+            $session->remove('cajax');
+            $session_cajax =  $session->get('cajax');
         }
 
-        if (\Input::get('cajaxRequestData') || \Input::post('cajaxRequestData')) {
-            $_SESSION['ls_cajax']['requestData'] = (\Input::get('cajaxRequestData') ?: \Input::post('cajaxRequestData')) ?: null;
+        if (Input::get('cajaxRequestData') || Input::post('cajaxRequestData')) {
+            $session_cajax['requestData'] = (Input::get('cajaxRequestData') ?: Input::post('cajaxRequestData')) ?: null;
 
-            if (!is_array($_SESSION['ls_cajax']['requestData'])) {
+            if (!is_array($session_cajax['requestData'])) {
                 /*
                  * Check whether the requestData is JSON and can be decoded as such
                  */
-                $arr_tmp_jsonDecodedRequestData = json_decode(html_entity_decode($_SESSION['ls_cajax']['requestData']), true);
+                $arr_tmp_jsonDecodedRequestData = json_decode(html_entity_decode($session_cajax['requestData']), true);
                 if (is_array($arr_tmp_jsonDecodedRequestData)) {
-                    $_SESSION['ls_cajax']['requestData'] = $arr_tmp_jsonDecodedRequestData;
+                    $session_cajax['requestData'] = $arr_tmp_jsonDecodedRequestData;
                 }
             }
         }
 
-        if (\Input::get('cajaxRequestData')) {
-            \Environment::set('request', ls_helpers_controller::getUrl(false, array('cajaxRequestData')));
+        $session->set('cajax', $session_cajax);
+
+        if (Input::get('cajaxRequestData')) {
+            Environment::set('request', ls_helpers_controller::getUrl(false, array('cajaxRequestData')));
         }
 
         if (
-                \Environment::get('isAjaxRequest')
+                Environment::get('isAjaxRequest')
             &&	(
-                    \Input::get('cajaxRequestData')
-                ||	\Input::post('cajaxRequestData')
+                    Input::get('cajaxRequestData')
+                ||	Input::post('cajaxRequestData')
                 )
         ) {
             $this->removeCacheBustingParameter();
         }
 
-        if (($_SESSION['ls_cajax']['requestData'] ?? null) !== null) {
+        if (($session_cajax['requestData'] ?? null) !== null) {//test
             /*
              * ->
              * Contao deals with ajax requests in a way that does not play nicely
@@ -86,7 +110,7 @@ class ls_cajax_mainController {
              * We solve this problem by not identifying an ls_cajax request
              * as an ajax request
              */
-            \Environment::set('isAjaxRequest', false);
+            Environment::set('isAjaxRequest', false);
             /*
              * <-
              */
@@ -94,7 +118,7 @@ class ls_cajax_mainController {
             $this->handleRenderingFilterInput();
         }
 
-        \Input::setGet('cajaxRequestData', null);
+        Input::setGet('cajaxRequestData', null);
     }
 
     /*
@@ -127,19 +151,25 @@ class ls_cajax_mainController {
         }
      */
     protected function handleRenderingFilterInput() {
-        $_SESSION['ls_cajax']['bln_useRenderingFilter'] = array(
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        $session_cajax =  $session->get('cajax');
+
+
+        $session_cajax['bln_useRenderingFilter'] = array(
             'any' => false,
             'articles' => false,
             'contentElements' => false,
             'modules' => false
         );
+        $session->set('cajax', $session_cajax);
 
-        if (!isset($_SESSION['ls_cajax']['requestData']['renderingFilter'])) {
+        if (!isset($session_cajax['requestData']['renderingFilter'])) {
             return;
         }
 
-        if (!is_array($_SESSION['ls_cajax']['requestData']['renderingFilter'])) {
-            unset($_SESSION['ls_cajax']['requestData']['renderingFilter']);
+        if (!is_array($session_cajax['requestData']['renderingFilter'])) {
+            unset($session_cajax['requestData']['renderingFilter']);
             return;
         }
 
@@ -148,47 +178,51 @@ class ls_cajax_mainController {
         $this->handleRenderingFilterElementInputByType('modules');
 
 
-        $_SESSION['ls_cajax']['bln_useRenderingFilter']['any']
+        $session_cajax['bln_useRenderingFilter']['any']
             =
-                $_SESSION['ls_cajax']['bln_useRenderingFilter']['articles']
-            ||	$_SESSION['ls_cajax']['bln_useRenderingFilter']['contentElements']
-            ||	$_SESSION['ls_cajax']['bln_useRenderingFilter']['modules'];
+            $session_cajax['bln_useRenderingFilter']['articles']
+            ||	$session_cajax['bln_useRenderingFilter']['contentElements']
+            ||	$session_cajax['bln_useRenderingFilter']['modules'];
     }
 
     protected function handleRenderingFilterElementInputByType($str_elementType = 'articles') {
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        $session_cajax =  $session->get('cajax');
+
         /*
          * Make sure that we have an allowed filterMode
          */
         $arr_allowedFilterModes = array('whitelist', 'blacklist', 'all', 'none');
-        if (!in_array($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'], $arr_allowedFilterModes)) {
-            $_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] = 'none';
+        if (!in_array($session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'], $arr_allowedFilterModes)) {
+            $session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] = 'none';
         }
 
         /*
          * If we have a pattern, we make sure that it contains a filled array
          * and if it doesn't, we dismiss the pattern
          */
-        if (isset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
+        if (isset($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
             /*
              * If it's not an array, we make one
              */
-            if (!is_array($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
-                $_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'] = array($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern']);
+            if (!is_array($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
+                $session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'] = array($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern']);
             }
 
             /*
              * We unset all empty array elements...
              */
-            foreach ($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'] as $k => $v) {
+            foreach ($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'] as $k => $v) {
                 if (!$v) {
-                    unset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'][$k]);
+                    unset($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'][$k]);
                 }
             }
             /*
              * ... and if none are left, we dismiss the pattern
              */
-            if (!count($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
-                unset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern']);
+            if (!count($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'])) {
+                unset($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern']);
             }
         }
 
@@ -197,11 +231,12 @@ class ls_cajax_mainController {
          * we dismiss this filter
          */
         if (
-                !isset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'])
-            &&	$_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] != 'all'
-            &&	$_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] != 'none'
+                !isset($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'])
+            &&	$session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] != 'all'
+            &&	$session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] != 'none'
         ) {
-            unset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]);
+            unset($session_cajax['requestData']['renderingFilter'][$str_elementType]);
+            $session->set('cajax', $session_cajax);
             return;
         }
 
@@ -210,13 +245,15 @@ class ls_cajax_mainController {
          * because it won't be used anyway
          */
         if (
-                $_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'all'
-            ||	$_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'none'
+            $session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'all'
+            ||	$session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'none'
         ) {
-            unset($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern']);
+            unset($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern']);
         }
 
-        $_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType] = true;
+        $session_cajax['bln_useRenderingFilter'][$str_elementType] = true;
+
+        $session->set('cajax', $session_cajax);
     }
 
     /*
@@ -224,6 +261,10 @@ class ls_cajax_mainController {
      * cajax context, from being rendered
      */
     public function filterElementsToRender($obj_element, $bln_isVisible) {
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        $session_cajax =  $session->get('cajax');
+
         /*
          * Don't do anything for elements that already shouldn't be visible
          * irrespective of the cajax rendering filter
@@ -232,9 +273,9 @@ class ls_cajax_mainController {
             return $bln_isVisible;
         }
 
-        if ($obj_element instanceof \ContentModel) {
+        if ($obj_element instanceof ContentModel) {
             $str_elementType = 'contentElements';
-        } else if ($obj_element instanceof \ModuleModel) {
+        } else if ($obj_element instanceof ModuleModel) {
             $str_elementType = 'modules';
         } else {
             $str_elementType = 'articles';
@@ -244,8 +285,8 @@ class ls_cajax_mainController {
          * Don't do anything if no relevant cajax rendering filter is set
          */
         if (
-                !($_SESSION['ls_cajax']['bln_useRenderingFilter']['any'] ?? null)
-            ||	!($_SESSION['ls_cajax']['bln_useRenderingFilter'][$str_elementType] ?? null)
+                !($session_cajax['bln_useRenderingFilter']['any'] ?? null)
+            ||	!($session_cajax['bln_useRenderingFilter'][$str_elementType] ?? null)
         ) {
             return $bln_isVisible;
         }
@@ -256,6 +297,10 @@ class ls_cajax_mainController {
     }
 
     protected function determineRequiredVisibility($str_elementType, $bln_isVisible, $str_cajaxIdentification) {
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        $session_cajax =  $session->get('cajax');
+
         if (!$str_elementType) {
             return $bln_isVisible;
         }
@@ -264,12 +309,12 @@ class ls_cajax_mainController {
          * With filterMode 'all' and 'none', we simply set the visibility flag
          * to true or false for all elements
          */
-        if ($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'all') {
+        if ($session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'all') {
             /*
              * We want to filter out all elements
              */
             return false;
-        } else if ($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'none') {
+        } else if ($session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'none') {
             /*
              * We want to filter out none of the elements, so we return
              * the visibility status as it already is.
@@ -282,7 +327,7 @@ class ls_cajax_mainController {
          * by default. In case of a blacklist, an element is visible by default,
          * which is already the case.
          */
-        if ($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'whitelist') {
+        if ($session_cajax['requestData']['renderingFilter'][$str_elementType]['filterMode'] == 'whitelist') {
             $bln_isVisible = false;
         }
 
@@ -290,7 +335,7 @@ class ls_cajax_mainController {
          * If one of the given patterns matches the ajax identification string
          * we simply switch the visibility flag and return it
          */
-        foreach ($_SESSION['ls_cajax']['requestData']['renderingFilter'][$str_elementType]['pattern'] as $str_pattern) {
+        foreach ($session_cajax['requestData']['renderingFilter'][$str_elementType]['pattern'] as $str_pattern) {
             if (preg_match('/'.preg_quote($str_pattern, '/').'/', $str_cajaxIdentification)) {
                 return !$bln_isVisible;
             }
@@ -304,7 +349,11 @@ class ls_cajax_mainController {
      * the requested id will be sent to the client
      */
     public function modifyOutput($str_content, $str_template) {
-        if (!is_array($_SESSION['ls_cajax'] ?? null)) {
+
+        $session = \Contao\System::getContainer()->get('cajax.session')->getSession();
+        $session_cajax =  $session->get('cajax');
+
+        if (!is_array($session_cajax ?? null)) {
             return $str_content;
         }
 
@@ -313,14 +362,14 @@ class ls_cajax_mainController {
          * the cajax specific session data but we need the data later in this
          * function, we temporarily store it in a variable.
          */
-        $tmp_ls_cajax = $_SESSION['ls_cajax'];
+        $tmp_ls_cajax = $session_cajax;
 
         /*
          * unset all cajax specific data if an output is generated because
          * in this case the cajax call is definitely finished
          */
-        unset($_SESSION['ls_cajax']['requestData']);
-        unset($_SESSION['ls_cajax']['bln_useRenderingFilter']);
+        unset($session_cajax['requestData']);
+        unset($session_cajax['bln_useRenderingFilter']);
 
         /*
          * Don't do anything if we don't have cajax requestData, which means
@@ -338,7 +387,7 @@ class ls_cajax_mainController {
 
         if ($request && System::getContainer()->get('contao.routing.scope_matcher')->isBackendRequest($request))
         {
-            $obj_beUser = \BackendUser::getInstance();
+            $obj_beUser = BackendUser::getInstance();
             if ($obj_beUser->currentLogin === null) {
                 return 'NOT ALLOWED';
             }
@@ -347,7 +396,7 @@ class ls_cajax_mainController {
         /*
          * We create a dom document and load the original output html.
          */
-        $obj_dom = new \DOMDocument();
+        $obj_dom = new DOMDocument();
 
         /*
          * Since DOMDocument will remove whitespaces between tags, we need to preserve them
@@ -412,12 +461,12 @@ class ls_cajax_mainController {
 
         if ($tmp_ls_cajax['requestData']['requestedElementClass'] ?? null) {
             $arr_requestedElementClasses = array_map('trim', explode(',', $tmp_ls_cajax['requestData']['requestedElementClass']));
-            $obj_xpath = new \DOMXPath($obj_dom);
+            $obj_xpath = new DOMXPath($obj_dom);
             foreach ($arr_requestedElementClasses as $str_requestedElementClass) {
                 $obj_relevantNodeList = $obj_xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' ".$str_requestedElementClass." ')]");
-                if ($obj_relevantNodeList instanceof \DOMNode) {
+                if ($obj_relevantNodeList instanceof DOMNode) {
                     $str_content .= $obj_relevantNodeList->ownerDocument->saveHTML($obj_relevantNodeList);
-                } else if ($obj_relevantNodeList instanceof \DOMNodeList) {
+                } else if ($obj_relevantNodeList instanceof DOMNodeList) {
                     foreach ($obj_relevantNodeList as $obj_relevantNode) {
                         if ($obj_relevantNode !== null) {
                             # $str_content .= $this->getChildNodesAsHTMLString($obj_relevantNode);
@@ -465,7 +514,7 @@ class ls_cajax_mainController {
          *
          * We expect the random parameter to be a "valueless" parameter and identify it by this characteristic.
          */
-        $arr_requestParts = explode('?', \Environment::get('request'));
+        $arr_requestParts = explode('?', Environment::get('request'));
         $str_requestBase = $arr_requestParts[0];
         $str_queryString = $arr_requestParts[1];
 
@@ -478,6 +527,6 @@ class ls_cajax_mainController {
             }
         }
 
-        \Environment::set('request', $str_requestBase.(count($arr_queryStringPartsToKeep) ? '?'.implode('&', $arr_queryStringPartsToKeep) : ''));
+        Environment::set('request', $str_requestBase.(count($arr_queryStringPartsToKeep) ? '?'.implode('&', $arr_queryStringPartsToKeep) : ''));
     }
 }

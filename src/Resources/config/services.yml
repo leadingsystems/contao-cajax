@@ -1,0 +1,14 @@
+services:
+
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  cajax.session:
+    class: LeadingSystems\CajaxBundle\Services\Session
+    public: true
+
+  LeadingSystems\CajaxBundle\EventListener\InitializeSystemListener:
+    tags:
+      - { name: contao.hook, hook: initializeSystem }
