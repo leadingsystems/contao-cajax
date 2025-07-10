@@ -15,7 +15,7 @@ foreach (array_keys($GLOBALS['TL_DCA']['tl_module']['palettes']) as $paletteName
     }
 
     PaletteManipulator::create()
-        ->addLegend('ls_cajax_legend', 'expert_legend', PaletteManipulator::POSITION_AFTER, true)
+        ->addLegend('ls_cajax_legend', 'protected_legend', PaletteManipulator::POSITION_AFTER, true)
         ->addField('cajaxIdentifierString', 'ls_cajax_legend', PaletteManipulator::POSITION_APPEND)
         ->applyToPalette($paletteName, 'tl_module');
 }
