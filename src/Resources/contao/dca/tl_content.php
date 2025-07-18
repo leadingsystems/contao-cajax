@@ -1,15 +1,22 @@
 <?php
-foreach ($GLOBALS['TL_DCA']['tl_content']['palettes'] as $paletteName => $palette)  {
-    if ($paletteName == '__selector__') {
+use Contao\CoreBundle\DataContainer\PaletteManipulator;
+
+$GLOBALS['TL_DCA']['tl_content']['fields']['cajaxIdentifierString'] = [
+    'exclude'   => true,
+    'label'     => &$GLOBALS['TL_LANG']['tl_content']['cajaxIdentifierString'],
+    'inputType' => 'text',
+    'eval'      => ['tl_class' => 'long'],
+    'sql'       => "varchar(255) NOT NULL default ''",
+];
+
+foreach (array_keys($GLOBALS['TL_DCA']['tl_content']['palettes']) as $paletteName) {
+    if ($paletteName === '__selector__') {
         continue;
     }
-    $GLOBALS['TL_DCA']['tl_content']['palettes'][$paletteName] .= ';{ls_cajax_legend:hide},cajaxIdentifierString';
+
+    PaletteManipulator::create()
+        ->addLegend('ls_cajax_legend', 'publish_legend', PaletteManipulator::POSITION_AFTER, true)
+        ->addField('cajaxIdentifierString', 'ls_cajax_legend', PaletteManipulator::POSITION_APPEND)
+        ->applyToPalette($paletteName, 'tl_content');
 }
 
-$GLOBALS['TL_DCA']['tl_content']['fields']['cajaxIdentifierString'] = array(
-    'exclude' => true,
-    'label' => &$GLOBALS['TL_LANG']['tl_content']['cajaxIdentifierString'],
-    'inputType' => 'text',
-    'eval' => array('tl_class'=>'long'),
-    'sql' => "varchar(255) NOT NULL default ''"
-);
