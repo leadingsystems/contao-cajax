@@ -177,12 +177,13 @@ class ls_cajax_mainController {
         $this->handleRenderingFilterElementInputByType('contentElements');
         $this->handleRenderingFilterElementInputByType('modules');
 
-
+        $session_cajax = $session->get('cajax');
         $session_cajax['bln_useRenderingFilter']['any']
             =
             $session_cajax['bln_useRenderingFilter']['articles']
             ||	$session_cajax['bln_useRenderingFilter']['contentElements']
             ||	$session_cajax['bln_useRenderingFilter']['modules'];
+        $session->set('cajax', $session_cajax);
     }
 
     protected function handleRenderingFilterElementInputByType($str_elementType = 'articles') {
