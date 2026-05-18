@@ -1,6 +1,9 @@
 Leading Systems Cajax bundle for Contao changelog
 ===========================================
 
+### 3.0.2 (2026-05-18)
+ * fix rendering filter
+
 ### 3.0.1 (2025-07-18)
  * improve DCA
 
